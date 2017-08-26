@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "properties": {
+        "propA": {
+            "type": "number",
+            "inherit": true
+        },
+        "propB": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "propA",
+        "propB"
+    ],
+    "type": "object"
+}
+

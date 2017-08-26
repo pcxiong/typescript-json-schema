@@ -30,6 +30,7 @@ function getDefaultArgs() {
         ignoreErrors: false,
         out: "",
         validationKeywords: [],
+        propInherit: false,
     };
 }
 exports.getDefaultArgs = getDefaultArgs;
@@ -404,6 +405,9 @@ var JsonSchemaGenerator = (function () {
             definition.typeof = "function";
             return definition;
         }
+        var ownProperties = this.args.propInherit
+            ? Object.keys(clazzType.getSymbol().members || {})
+            : [];
         var clazz = node;
         var props = tc.getPropertiesOfType(clazzType);
         var fullName = tc.typeToString(clazzType, undefined, ts.TypeFormatFlags.UseFullyQualifiedType);
@@ -444,6 +448,10 @@ var JsonSchemaGenerator = (function () {
                 var propertyName = prop.getName();
                 var propDef = _this.getDefinitionForProperty(prop, tc, node);
                 if (propDef != null) {
+                    if (_this.args.propInherit &&
+                        ownProperties.indexOf(propertyName) === -1) {
+                        propDef.inherit = true;
+                    }
                     all[propertyName] = propDef;
                 }
                 return all;
@@ -869,6 +877,8 @@ function run() {
         .describe("strictNullChecks", "Make values non-nullable by default.")
         .boolean("ignoreErrors").default("ignoreErrors", defaultArgs.ignoreErrors)
         .describe("ignoreErrors", "Generate even if the program has errors.")
+        .boolean("propInherit").default("taginherit", defaultArgs.propInherit)
+        .describe("propInherit", "Create inherit in output schema")
         .alias("out", "o")
         .describe("out", "The output file, defaults to using stdout")
         .array("validationKeywords").default("validationKeywords", defaultArgs.validationKeywords)
@@ -888,6 +898,7 @@ function run() {
         ignoreErrors: args.ignoreErrors,
         out: args.out,
         validationKeywords: args.validationKeywords,
+        propInherit: args.propInherit,
     });
 }
 exports.run = run;

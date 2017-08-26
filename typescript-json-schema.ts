@@ -25,6 +25,7 @@ export function getDefaultArgs(): Args {
         ignoreErrors: false,
         out: "",
         validationKeywords: [],
+        propInherit: false,
     };
 }
 
@@ -46,6 +47,7 @@ export type Args = {
     ignoreErrors: boolean;
     out: string;
     validationKeywords: string[];
+    propInherit: boolean;
 };
 
 export type PartialArgs = Partial<Args>;
@@ -75,7 +77,8 @@ export type Definition = {
     properties?: {},
     defaultProperties?: string[],
 
-    typeof?: "function"
+    typeof?: "function",
+    inherit?: boolean,
 };
 
 function extend(target: any, ..._: any[]) {
@@ -530,6 +533,9 @@ export class JsonSchemaGenerator {
             return definition;
         }
 
+        const ownProperties = this.args.propInherit
+            ? Object.keys(clazzType.getSymbol().members || {})
+            : [];
         const clazz = <ts.ClassDeclaration>node;
         const props = tc.getPropertiesOfType(clazzType);
         const fullName = tc.typeToString(clazzType, undefined, ts.TypeFormatFlags.UseFullyQualifiedType);
@@ -575,6 +581,10 @@ export class JsonSchemaGenerator {
                 const propertyName = prop.getName();
                 const propDef = this.getDefinitionForProperty(prop, tc, node);
                 if (propDef != null) {
+                    if (this.args.propInherit &&
+                        ownProperties.indexOf(propertyName) === -1) {
+                        propDef.inherit = true;
+                    }
                     all[propertyName] = propDef;
                 }
                 return all;
@@ -1033,6 +1043,8 @@ export function run() {
             .describe("strictNullChecks", "Make values non-nullable by default.")
         .boolean("ignoreErrors").default("ignoreErrors", defaultArgs.ignoreErrors)
             .describe("ignoreErrors", "Generate even if the program has errors.")
+        .boolean("propInherit").default("taginherit", defaultArgs.propInherit)
+            .describe("propInherit", "Create inherit in output schema")
         .alias("out", "o")
             .describe("out", "The output file, defaults to using stdout")
         .array("validationKeywords").default("validationKeywords", defaultArgs.validationKeywords)
@@ -1053,6 +1065,7 @@ export function run() {
         ignoreErrors: args.ignoreErrors,
         out: args.out,
         validationKeywords: args.validationKeywords,
+        propInherit: args.propInherit,
     });
 }
 

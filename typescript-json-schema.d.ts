@@ -17,6 +17,7 @@ export declare type Args = {
     ignoreErrors: boolean;
     out: string;
     validationKeywords: string[];
+    propInherit: boolean;
 };
 export declare type PartialArgs = Partial<Args>;
 export declare type PrimitiveType = number | boolean | string | null;
@@ -45,6 +46,7 @@ export declare type Definition = {
     properties?: {};
     defaultProperties?: string[];
     typeof?: "function";
+    inherit?: boolean;
 };
 export declare class JsonSchemaGenerator {
     private args;
